@@ -181,8 +181,8 @@ CREATE TABLE IF NOT EXISTS pdca.causa_raiz (
 CREATE TABLE IF NOT EXISTS pdca.meta_responsavel (
     id BIGSERIAL PRIMARY KEY,
     id_meta BIGINT NOT NULL REFERENCES pdca.meta(id) ON DELETE CASCADE,
-    id_colaborador BIGINT NOT NULL REFERENCES colaborador(id) ON DELETE CASCADE,
-    CONSTRAINT meta_responsavel_unique_0 UNIQUE (id_meta, id_colaborador)
+    id_usuario BIGINT NOT NULL REFERENCES usuario_sistema(id) ON DELETE CASCADE,
+    CONSTRAINT meta_responsavel_unique_0 UNIQUE (id_meta, id_usuario)
 );
  
 CREATE TABLE IF NOT EXISTS pdca.plano_5w2h (
