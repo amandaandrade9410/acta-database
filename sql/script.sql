@@ -100,7 +100,6 @@ CREATE TABLE IF NOT EXISTS pdca.ciclo (
     id_empresa BIGINT NOT NULL REFERENCES empresa(id) ON DELETE CASCADE,
     id_responsavel BIGINT NOT NULL REFERENCES usuario_sistema(id),
     id_ishikawa_mongo INTEGER,
-    id_5_porques_mongo INTEGER,
     titulo VARCHAR(160) NOT NULL,
     descricao TEXT NOT NULL,
     status VARCHAR(40) NOT NULL CHECK (status IN ('PLANEJAMENTO', 'EXECUCAO', 'VERIFICACAO', 'PADRONIZACAO', 'CONCLUIDO', 'CANCELADO', 'PAUSADO')),
@@ -168,6 +167,7 @@ CREATE TABLE IF NOT EXISTS pdca.causa_raiz (
     id BIGSERIAL PRIMARY KEY,
     id_ciclo BIGINT NOT NULL REFERENCES pdca.ciclo(id) ON DELETE CASCADE,
     id_plano_acao BIGINT REFERENCES pdca.plano_acao(id),
+    id_5_porques_mongo INTEGER,
     validada_por BIGINT REFERENCES usuario_sistema(id),
     descricao TEXT NOT NULL,
     origem VARCHAR(40) NOT NULL CHECK (origem IN ('MANUAL', 'IA', 'FORMULARIO', 'IMPORTACAO', 'SISTEMA')),
@@ -207,6 +207,7 @@ CREATE TABLE IF NOT EXISTS pdca.efeito_secundario (
     descricao TEXT NOT NULL,
     peso NUMERIC(3,2) NOT NULL CHECK (peso BETWEEN 0 AND 1),
     impacto_estimado TEXT,
+    tipo VARCHAR(8) CHECK (tipo IN ('POSITIVO', 'NEGATIVO')),
     criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     atualizado_em TIMESTAMPTZ
 );
@@ -230,7 +231,7 @@ CREATE TABLE IF NOT EXISTS pdca.tarefa (
 CREATE TABLE IF NOT EXISTS pdca.problema (
     id BIGSERIAL PRIMARY KEY,
     id_ciclo BIGINT NOT NULL REFERENCES pdca.ciclo(id) ON DELETE CASCADE,
-    id_causa_raiz BIGINT REFERENCES pdca.causa_raiz(id) ON DELETE CASCADE,
+    id_causa_raiz BIGINT NOT NULL REFERENCES pdca.causa_raiz(id) ON DELETE CASCADE,
     id_problema_pai BIGINT REFERENCES pdca.problema(id) ON DELETE CASCADE,
     criado_por BIGINT NOT NULL REFERENCES usuario_sistema(id),
     titulo VARCHAR(180) NOT NULL,
@@ -248,7 +249,7 @@ CREATE TABLE IF NOT EXISTS pdca.alerta_prazo (
     id_tarefa BIGINT NOT NULL REFERENCES pdca.tarefa(id) ON DELETE CASCADE,
     id_usuario_destino BIGINT NOT NULL REFERENCES usuario_sistema(id) ON DELETE CASCADE,
     mensagem TEXT NOT NULL,
-    enviado_em TIMESTAMPTZ DEFAULT NOW(),
+    enviado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     lido_em TIMESTAMPTZ
 );
  
