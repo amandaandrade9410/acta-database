@@ -1,0 +1,57 @@
+name: deploy-neon
+
+on:
+    pull_request:
+        branches:
+            - 'main'
+        paths:
+            - 'sql/script.sql'
+
+permissions: 
+    pull-requests: write
+
+jobs:
+    deploy-schema:
+        name: rodar-database-neon
+        runs-on: ubuntu-latest
+
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v4
+
+          - name: Instala postgres
+            run: |
+                sudo apt-get update -y
+                sudo apt-get install -y postgresql-client
+
+          - name:  Exclui banco atual
+            env:
+                DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+            run: |
+                psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+                    DROP SCHEMA IF EXISTS public CASCADE;
+                    DROP SCHEMA IF EXISTS pdca CASCADE;
+                    DROP SCHEMA IF EXISTS auditoria CASCADE;
+                SQL
+            
+          - name: Aplica script.sql
+            env:
+                DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+            run: |
+                psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f sql/script.sql
+
+          - name: Comenta resultado na pull request
+            if: always()
+            uses: actions/github-script@v7
+            with:
+                script: |
+                    const status = '${{ job.status }}'
+                    const emoji = status === 'success' ? '✅' : '❌'
+                    const mensagem = status === 'success' ? '**Script aplicado com sucesso no Neon!** O banco foi resetado e o `script.sql` desta Pull Request foi carregado!' : '**Falha ao aplicar script no Neon.** Verifique os logs do workflow para detalhes'
+
+                    github.rest.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: `${emoji} ${mensagem}`
+                    })
