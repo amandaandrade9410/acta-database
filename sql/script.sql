@@ -1,4 +1,5 @@
 -- Criando schemas
+CREATE SCHEMA IF NOT EXISTS public;
 CREATE SCHEMA IF NOT EXISTS pdca;
 CREATE SCHEMA IF NOT EXISTS auditoria;
  
@@ -162,10 +163,26 @@ CREATE TABLE IF NOT EXISTS pdca.verificacao_resultado (
     observacao TEXT,
     criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS pdca.problema (
+    id BIGSERIAL PRIMARY KEY,
+    id_ciclo BIGINT NOT NULL REFERENCES pdca.ciclo(id) ON DELETE CASCADE,
+    id_problema_pai BIGINT REFERENCES pdca.problema(id) ON DELETE CASCADE,
+    criado_por BIGINT NOT NULL REFERENCES usuario_sistema(id),
+    titulo VARCHAR(180) NOT NULL,
+    descricao TEXT NOT NULL,
+    peso NUMERIC(3,2) NOT NULL CHECK (peso BETWEEN 0 AND 1),
+    status VARCHAR(40) NOT NULL CHECK (status IN ('ABERTO', 'EM_ANALISE', 'PRIORIZADO', 'RESOLVIDO', 'DESCARTADO')),
+    origem VARCHAR(40) NOT NULL CHECK (origem IN ('MANUAL', 'IA', 'FORMULARIO', 'IMPORTACAO', 'SISTEMA')),
+    persistente BOOLEAN NOT NULL DEFAULT FALSE,
+    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    atualizado_em TIMESTAMPTZ
+);
  
 CREATE TABLE IF NOT EXISTS pdca.causa_raiz (
     id BIGSERIAL PRIMARY KEY,
     id_ciclo BIGINT NOT NULL REFERENCES pdca.ciclo(id) ON DELETE CASCADE,
+    id_problema BIGINT NOT NULL REFERENCES pdca.problema(id),
     id_plano_acao BIGINT REFERENCES pdca.plano_acao(id),
     id_5_porques_mongo INTEGER,
     validada_por BIGINT REFERENCES usuario_sistema(id),
@@ -228,21 +245,6 @@ CREATE TABLE IF NOT EXISTS pdca.tarefa (
     CONSTRAINT tarefa_datas_check CHECK ((data_inicio_real IS NULL OR data_fim_prevista >= data_inicio_real) AND (data_fim_real IS NULL OR data_inicio_real IS NULL OR data_fim_real >= data_inicio_real))
 );
  
-CREATE TABLE IF NOT EXISTS pdca.problema (
-    id BIGSERIAL PRIMARY KEY,
-    id_ciclo BIGINT NOT NULL REFERENCES pdca.ciclo(id) ON DELETE CASCADE,
-    id_causa_raiz BIGINT NOT NULL REFERENCES pdca.causa_raiz(id) ON DELETE CASCADE,
-    id_problema_pai BIGINT REFERENCES pdca.problema(id) ON DELETE CASCADE,
-    criado_por BIGINT NOT NULL REFERENCES usuario_sistema(id),
-    titulo VARCHAR(180) NOT NULL,
-    descricao TEXT NOT NULL,
-    peso NUMERIC(3,2) NOT NULL CHECK (peso BETWEEN 0 AND 1),
-    status VARCHAR(40) NOT NULL CHECK (status IN ('ABERTO', 'EM_ANALISE', 'PRIORIZADO', 'RESOLVIDO', 'DESCARTADO')),
-    origem VARCHAR(40) NOT NULL CHECK (origem IN ('MANUAL', 'IA', 'FORMULARIO', 'IMPORTACAO', 'SISTEMA')),
-    persistente BOOLEAN NOT NULL DEFAULT FALSE,
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    atualizado_em TIMESTAMPTZ
-);
  
 CREATE TABLE IF NOT EXISTS pdca.alerta_prazo (
     id BIGSERIAL PRIMARY KEY,
@@ -294,7 +296,7 @@ CREATE TABLE IF NOT EXISTS pdca.priorizacao_problema_usuario (
 -- Schema auditoria
 CREATE TABLE IF NOT EXISTS auditoria.catalogo_dados (
     id BIGSERIAL PRIMARY KEY,
-    schema VARCHAR(100) NOT NULL,
+    nome_schema VARCHAR(100) NOT NULL,
     tabela VARCHAR(100) NOT NULL,
     coluna VARCHAR(100) NOT NULL,
     tipo_dado VARCHAR(80) NOT NULL,
