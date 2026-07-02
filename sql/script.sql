@@ -258,7 +258,6 @@ CREATE TABLE IF NOT EXISTS pdca.alerta_prazo (
 CREATE TABLE IF NOT EXISTS pdca.tarefa_dependencia (
     id_tarefa BIGINT NOT NULL REFERENCES pdca.tarefa(id) ON DELETE CASCADE,
     id_tarefa_dependencia BIGINT NOT NULL REFERENCES pdca.tarefa(id) ON DELETE CASCADE,
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY(id_tarefa, id_tarefa_dependencia),
     CONSTRAINT tarefa_dependencia_diferente_check CHECK (id_tarefa <> id_tarefa_dependencia)
 );
@@ -268,7 +267,6 @@ CREATE TABLE IF NOT EXISTS pdca.usuario_ciclo (
     id_usuario BIGINT NOT NULL REFERENCES usuario_sistema(id) ON DELETE CASCADE,
     id_ciclo BIGINT NOT NULL REFERENCES pdca.ciclo(id) ON DELETE CASCADE,
     papel_ciclo VARCHAR(40) NOT NULL CHECK (papel_ciclo IN ('RESPONSAVEL', 'PARTICIPANTE', 'EXECUTOR', 'VALIDADOR', 'OBSERVADOR')),
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT usuario_ciclo_unique_0 UNIQUE (id_usuario, id_ciclo)
 );
  
@@ -278,7 +276,7 @@ CREATE TABLE IF NOT EXISTS pdca.usuario_treinamento (
     id_usuario BIGINT NOT NULL REFERENCES usuario_sistema(id) ON DELETE CASCADE,
     obrigatorio BOOLEAN NOT NULL,
     status VARCHAR(40) NOT NULL CHECK (status IN ('PENDENTE', 'CONFIRMADO', 'CONCLUIDO', 'DISPENSADO', 'CANCELADO')),
-    confirmado_em TIMESTAMPTZ,
+    terminado_em TIMESTAMPTZ,
     CONSTRAINT usuario_treinamento_unique_0 UNIQUE (id_treinamento, id_usuario)
 );
  
@@ -340,7 +338,7 @@ CREATE TABLE IF NOT EXISTS auditoria.log_status (
     tabela VARCHAR(100) NOT NULL,
     status_anterior VARCHAR(40) NOT NULL,
     status_atual VARCHAR(40) NOT NULL,
-    data_log TIMESTAMPTZ NOT NULL
+    data_log TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
  
 CREATE TABLE IF NOT EXISTS auditoria.log_colaborador (
