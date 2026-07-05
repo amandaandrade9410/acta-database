@@ -169,7 +169,7 @@ CREATE TABLE IF NOT EXISTS pdca.problema (
     id_ciclo BIGINT NOT NULL REFERENCES pdca.ciclo(id) ON DELETE CASCADE,
     id_problema_pai BIGINT REFERENCES pdca.problema(id) ON DELETE CASCADE,
     criado_por BIGINT NOT NULL REFERENCES usuario_sistema(id),
-    titulo VARCHAR(180) NOT NULL,
+    titulo VARCHAR(160) NOT NULL,
     descricao TEXT NOT NULL,
     peso NUMERIC(3,2) NOT NULL CHECK (peso BETWEEN 0 AND 1),
     status VARCHAR(40) NOT NULL CHECK (status IN ('ABERTO', 'EM_ANALISE', 'PRIORIZADO', 'RESOLVIDO', 'DESCARTADO')),
@@ -196,10 +196,9 @@ CREATE TABLE IF NOT EXISTS pdca.causa_raiz (
 );
  
 CREATE TABLE IF NOT EXISTS pdca.meta_responsavel (
-    id BIGSERIAL PRIMARY KEY,
     id_meta BIGINT NOT NULL REFERENCES pdca.meta(id) ON DELETE CASCADE,
     id_usuario BIGINT NOT NULL REFERENCES usuario_sistema(id) ON DELETE CASCADE,
-    CONSTRAINT meta_responsavel_unique_0 UNIQUE (id_meta, id_usuario)
+    PRIMARY KEY (id_meta, id_usuario)
 );
  
 CREATE TABLE IF NOT EXISTS pdca.plano_5w2h (
@@ -263,32 +262,29 @@ CREATE TABLE IF NOT EXISTS pdca.tarefa_dependencia (
 );
  
 CREATE TABLE IF NOT EXISTS pdca.usuario_ciclo (
-    id BIGSERIAL PRIMARY KEY,
     id_usuario BIGINT NOT NULL REFERENCES usuario_sistema(id) ON DELETE CASCADE,
     id_ciclo BIGINT NOT NULL REFERENCES pdca.ciclo(id) ON DELETE CASCADE,
     papel_ciclo VARCHAR(40) NOT NULL CHECK (papel_ciclo IN ('RESPONSAVEL', 'PARTICIPANTE', 'EXECUTOR', 'VALIDADOR', 'OBSERVADOR')),
-    CONSTRAINT usuario_ciclo_unique_0 UNIQUE (id_usuario, id_ciclo)
+    PRIMARY KEY (id_usuario, id_ciclo)
 );
  
 CREATE TABLE IF NOT EXISTS pdca.usuario_treinamento (
-    id BIGSERIAL PRIMARY KEY,
     id_treinamento BIGINT NOT NULL REFERENCES pdca.treinamento(id) ON DELETE CASCADE,
     id_usuario BIGINT NOT NULL REFERENCES usuario_sistema(id) ON DELETE CASCADE,
     obrigatorio BOOLEAN NOT NULL,
     status VARCHAR(40) NOT NULL CHECK (status IN ('PENDENTE', 'CONFIRMADO', 'CONCLUIDO', 'DISPENSADO', 'CANCELADO')),
     terminado_em TIMESTAMPTZ,
-    CONSTRAINT usuario_treinamento_unique_0 UNIQUE (id_treinamento, id_usuario)
+    PRIMARY KEY (id_usuario, id_treinamento)
 );
  
 CREATE TABLE IF NOT EXISTS pdca.priorizacao_problema_usuario (
-    id BIGSERIAL PRIMARY KEY,
     id_problema BIGINT NOT NULL REFERENCES pdca.problema(id) ON DELETE CASCADE,
     id_usuario BIGINT NOT NULL REFERENCES usuario_sistema(id) ON DELETE CASCADE,
     posicao INTEGER NOT NULL CHECK (posicao > 0),
     peso_calculado NUMERIC(3,2) NOT NULL CHECK (peso_calculado BETWEEN 0 AND 1),
     criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     atualizado_em TIMESTAMPTZ,
-    CONSTRAINT priorizacao_problema_usuario_unique_0 UNIQUE (id_problema, id_usuario)
+    PRIMARY KEY (id_problema, id_usuario)
 );
  
 -- Schema auditoria
