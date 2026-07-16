@@ -111,10 +111,24 @@ CREATE TABLE IF NOT EXISTS pdca.ciclo (
     atualizado_em TIMESTAMPTZ,
     CONSTRAINT ciclo_datas_check CHECK (data_estimada_fim >= data_inicio AND (data_fim_real IS NULL OR data_fim_real >= data_inicio))
 );
+
+CREATE TABLE IF NOT EXISTS pdca.plano_acao (
+    id BIGSERIAL PRIMARY KEY,
+    id_ciclo BIGINT NOT NULL REFERENCES pdca.ciclo(id) ON DELETE CASCADE,
+    nome VARCHAR(160) NOT NULL,
+    objetivo TEXT,
+    prioridade VARCHAR(40) NOT NULL CHECK (prioridade IN ('BAIXA', 'MEDIA', 'ALTA', 'CRITICA')),
+    status VARCHAR(40) NOT NULL CHECK (status IN ('RASCUNHO', 'APROVADO', 'EM_EXECUCAO', 'CONCLUIDO', 'CANCELADO')),
+    origem VARCHAR(40) NOT NULL CHECK (origem IN ('MANUAL', 'IA', 'FORMULARIO', 'IMPORTACAO', 'SISTEMA')),
+    criado_por BIGINT NOT NULL REFERENCES usuario_sistema(id),
+    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    atualizado_em TIMESTAMPTZ
+);
  
 CREATE TABLE IF NOT EXISTS pdca.meta (
     id BIGSERIAL PRIMARY KEY,
     id_ciclo BIGINT NOT NULL REFERENCES pdca.ciclo(id) ON DELETE CASCADE,
+    id_plano_acao BIGINT NOT NULL REFERENCES pdca.plano_acao(id),
     objetivo TEXT NOT NULL,
     valor_base NUMERIC(15,2) CHECK (valor_base >= 0),
     valor_alvo NUMERIC(15,2) CHECK (valor_alvo >= 0),
@@ -128,18 +142,6 @@ CREATE TABLE IF NOT EXISTS pdca.meta (
     atualizado_em TIMESTAMPTZ
 );
  
-CREATE TABLE IF NOT EXISTS pdca.plano_acao (
-    id BIGSERIAL PRIMARY KEY,
-    id_ciclo BIGINT NOT NULL REFERENCES pdca.ciclo(id) ON DELETE CASCADE,
-    nome VARCHAR(160) NOT NULL,
-    objetivo TEXT,
-    prioridade VARCHAR(40) NOT NULL CHECK (prioridade IN ('BAIXA', 'MEDIA', 'ALTA', 'CRITICA')),
-    status VARCHAR(40) NOT NULL CHECK (status IN ('RASCUNHO', 'APROVADO', 'EM_EXECUCAO', 'CONCLUIDO', 'CANCELADO')),
-    origem VARCHAR(40) NOT NULL CHECK (origem IN ('MANUAL', 'IA', 'FORMULARIO', 'IMPORTACAO', 'SISTEMA')),
-    criado_por BIGINT NOT NULL REFERENCES usuario_sistema(id),
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    atualizado_em TIMESTAMPTZ
-);
  
 CREATE TABLE IF NOT EXISTS pdca.treinamento (
     id BIGSERIAL PRIMARY KEY,
