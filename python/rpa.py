@@ -152,7 +152,7 @@ def carregar_usuarios_e_colaboradores(mapa_empresa_ids):
         "nome": (df_colab["nome"].str.strip() + " " + df_colab["sobrenome"].str.strip()),
         "cargo": df_colab["cargo"].str.strip(),
         "area": df_colab["area"].str.strip(),
-        "data_nascimento": "1990-01-01", 
+        "data_nascimento": pd.Timestamp("1990-01-01"),
         "data_contratacao": df_colab["dt_contratacao"],
         "permissao_gestor": df_colab["permissao_gestor"],
         "status": df_colab["status"].map({"ATIVA": "ATIVO", "INATIVA": "INATIVO"}).fillna("ATIVO"),
@@ -425,7 +425,7 @@ def carregar_problemas(mapa_ciclo_ids, mapa_colaborador_ids):
     df_destino = pd.DataFrame({
         "id": df["id_problema"],
         "id_ciclo": df["id_ciclo"].map(mapa_ciclo_ids),
-        "id_problema_pai": None,
+        "id_problema_pai": pd.NA,
         "criado_por": df["id_colaborador"].map(mapa_colaborador_ids),
         "titulo": df["titulo"].str.strip(),
         "descricao": df["descricao"].str.strip(),
@@ -435,6 +435,7 @@ def carregar_problemas(mapa_ciclo_ids, mapa_colaborador_ids):
         "persistente": False,
         "criado_em": df["encontrado_em"]
     })
+    df_destino["id_problema_pai"] = df_destino["id_problema_pai"].astype("Int64")
 
     inserir_dataframe(
         df_destino, "problema", schema="pdca", sequence="pdca.problema_id_seq"
